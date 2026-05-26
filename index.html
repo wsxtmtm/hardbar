@@ -1561,6 +1561,277 @@
       .menu-tabs { overflow-x: auto; justify-content: flex-start; padding-bottom: 2px; }
       .menu-tab { flex-shrink: 0; }
     }
+
+    /* ══════════════════════════════════════════
+       DJ MODAL
+    ══════════════════════════════════════════ */
+    #dj-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0);
+      pointer-events: none;
+      transition: background 0.35s;
+    }
+    #dj-modal.open {
+      background: rgba(0,0,0,0.88);
+      pointer-events: all;
+    }
+    .dj-box {
+      background: #0a0000;
+      border: 1px solid rgba(204,0,0,0.35);
+      padding: 48px 44px;
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.4s ease;
+    }
+    #dj-modal.open .dj-box {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+
+    @media (max-width: 768px) {
+      .dj-box {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 28px 20px calc(28px + env(safe-area-inset-bottom, 0px));
+        border-radius: 0;
+        border-left: none; border-right: none; border-bottom: none;
+        max-height: 92vh;
+        overflow-y: auto;
+      }
+      #dj-modal { align-items: flex-end; }
+    }
+
+    /* ══════════════════════════════════════════
+       NOW PLAYING WIDGET
+    ══════════════════════════════════════════ */
+    .now-playing {
+      position: fixed;
+      z-index: 550;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: rgba(8, 0, 0, 0.96);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow:
+        0 8px 40px rgba(0,0,0,0.75),
+        0 0 0 1px rgba(204,0,0,0.12) inset;
+      overflow: hidden;
+      transition: box-shadow 0.3s, border-color 0.3s;
+      cursor: default;
+    }
+    .now-playing:hover {
+      border-color: rgba(255,255,255,0.14);
+      box-shadow:
+        0 12px 48px rgba(0,0,0,0.8),
+        0 0 0 1px rgba(204,0,0,0.2) inset;
+    }
+
+    /* Album art */
+    .np-art {
+      flex-shrink: 0;
+      width: 66px;
+      height: 66px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 14px;
+      margin: 8px 0 8px 8px;
+      background: #0e0000;
+    }
+    .np-art-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          45deg,
+          rgba(204,0,0,0.07) 0px, rgba(204,0,0,0.07) 1px,
+          transparent 1px, transparent 10px
+        ),
+        radial-gradient(ellipse at 30% 40%, rgba(204,0,0,0.25) 0%, transparent 65%);
+    }
+    .np-art-logo {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .np-art-logo img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+      mix-blend-mode: screen;
+      opacity: 0.85;
+    }
+    /* vinyl spin when playing */
+    .np-art-vinyl {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        #1a0000 0deg, #0d0000 60deg,
+        #1a0000 120deg, #0d0000 180deg,
+        #1a0000 240deg, #0d0000 300deg,
+        #1a0000 360deg
+      );
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    .np-art-bars {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 12px;
+    }
+    .np-art-bar {
+      width: 2px;
+      background: var(--red);
+      border-radius: 1px;
+      transform-origin: bottom;
+      height: 4px;
+      opacity: 0.7;
+    }
+    .now-playing.np-active .np-art-bar:nth-child(1) { animation: npBar 0.75s ease-in-out infinite; }
+    .now-playing.np-active .np-art-bar:nth-child(2) { animation: npBar 0.55s ease-in-out infinite 0.15s; }
+    .now-playing.np-active .np-art-bar:nth-child(3) { animation: npBar 0.9s ease-in-out infinite 0.05s; }
+    .now-playing.np-active .np-art-bar:nth-child(4) { animation: npBar 0.65s ease-in-out infinite 0.25s; }
+    .now-playing.np-active .np-art-bar:nth-child(5) { animation: npBar 0.8s ease-in-out infinite 0.1s; }
+    @keyframes npBar {
+      0%, 100% { transform: scaleY(0.3); opacity: 0.5; }
+      50%       { transform: scaleY(1);   opacity: 1; }
+    }
+
+    /* Track info */
+    .np-info {
+      flex: 1;
+      min-width: 0;
+      padding: 0 14px 0 12px;
+    }
+    .np-label {
+      font-size: 7px;
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      color: rgba(204,0,0,0.7);
+      margin-bottom: 5px;
+      font-family: 'Disket Mono', monospace;
+    }
+    .np-track {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+      font-family: 'Disket Mono', monospace;
+    }
+    .np-artist {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: 'Disket Mono', monospace;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+
+    /* Separator */
+    .np-sep {
+      width: 1px;
+      height: 38px;
+      background: rgba(255,255,255,0.07);
+      flex-shrink: 0;
+    }
+
+    /* Request button */
+    .np-btn {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 0 20px;
+      height: 82px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: background 0.25s;
+      border-radius: 0 18px 18px 0;
+    }
+    .np-btn:hover { background: rgba(204,0,0,0.12); }
+    .np-btn:active { background: rgba(204,0,0,0.22); }
+    .np-btn-ico {
+      width: 36px;
+      height: 36px;
+      background: var(--red);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 0 0 rgba(204,0,0,0);
+    }
+    .np-btn:hover .np-btn-ico {
+      background: var(--red-b);
+      box-shadow: 0 0 16px rgba(204,0,0,0.55);
+    }
+    .np-btn-ico svg { display: block; }
+    .np-btn-lbl {
+      font-family: 'Disket Mono', monospace;
+      font-size: 6.5px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      white-space: nowrap;
+      transition: color 0.2s;
+    }
+    .np-btn:hover .np-btn-lbl { color: rgba(255,255,255,0.7); }
+
+    /* Desktop: bottom-right */
+    @media (min-width: 769px) {
+      .now-playing {
+        right: 28px;
+        bottom: 28px;
+        width: 380px;
+      }
+      .np-info { padding: 0 16px 0 14px; }
+      .np-track { font-size: 14px; }
+    }
+
+    /* Mobile: above bottom nav, full width */
+    @media (max-width: 768px) {
+      .now-playing {
+        left: 12px;
+        right: 12px;
+        bottom: calc(70px + env(safe-area-inset-bottom, 0px) + 6px);
+        border-radius: 16px;
+      }
+      .np-art { width: 58px; height: 58px; margin: 7px 0 7px 7px; border-radius: 11px; }
+      .np-art-logo img { width: 36px; height: 36px; }
+      .np-btn { height: 72px; padding: 0 16px; }
+      .np-btn-ico { width: 32px; height: 32px; }
+      .np-track { font-size: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -1867,6 +2138,15 @@
       </div>
     </div>
 
+    <div style="margin-top:36px;text-align:center;" class="fade-in">
+      <a href="split.html" style="font-family:'Disket Mono',monospace;font-size:9px;letter-spacing:4px;text-transform:uppercase;background:transparent;color:rgba(255,255,255,0.7);border:1px solid rgba(204,0,0,0.35);padding:14px 32px;cursor:pointer;transition:all 0.3s;display:inline-flex;align-items:center;gap:10px;text-decoration:none;"
+        onmouseover="this.style.borderColor='var(--red)';this.style.color='#fff';this.style.background='rgba(204,0,0,0.08)'"
+        onmouseout="this.style.borderColor='rgba(204,0,0,0.35)';this.style.color='rgba(255,255,255,0.7)';this.style.background='transparent'">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Разделить счёт и оплатить
+      </a>
+    </div>
+
   </div>
 </section>
 
@@ -1930,6 +2210,7 @@
       </div>
 
     </div>
+
   </div>
 </section>
 
@@ -2034,6 +2315,41 @@
 
 
 <!-- ═══════════════════════════════
+     DJ MODAL
+═══════════════════════════════ -->
+<div id="dj-modal" onclick="if(event.target===this)closeDJ()">
+  <div class="dj-box">
+    <button class="book-close" onclick="closeDJ()">✕</button>
+    <div class="book-title">Заказ музыки</div>
+    <div class="book-sub">Передай трек диджею — услышишь в баре</div>
+
+    <div id="dj-form">
+      <div class="form-field">
+        <label class="form-lbl">Исполнитель</label>
+        <input class="form-inp" type="text" id="dj-artist" placeholder="Группа или артист">
+      </div>
+      <div class="form-field">
+        <label class="form-lbl">Трек</label>
+        <input class="form-inp" type="text" id="dj-track" placeholder="Название песни">
+      </div>
+      <div class="form-field">
+        <label class="form-lbl">Пожелание <span style="color:rgba(255,255,255,0.25);font-size:8px;letter-spacing:1px;">(необязательно)</span></label>
+        <input class="form-inp" type="text" id="dj-wish" placeholder="Посвящение или комментарий...">
+      </div>
+      <button class="btn-full" onclick="submitDJ()">Отправить диджею</button>
+    </div>
+
+    <div class="book-success" id="dj-success">
+      <div class="book-success-icon">🎧</div>
+      <div class="book-success-text" style="letter-spacing:3px;color:#fff;margin-bottom:8px;">Трек передан!</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.35);font-family:'Disket Mono',monospace;font-weight:400;">Диджей уже в курсе. Слушай внимательно.</div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ═══════════════════════════════
      BOOKING MODAL
 ═══════════════════════════════ -->
 <div id="book-modal" onclick="if(event.target===this)closeBook()">
@@ -2078,6 +2394,55 @@
 
 
 <!-- ═══════════════════════════════
+     NOW PLAYING WIDGET
+═══════════════════════════════ -->
+<div class="now-playing" id="nowPlaying">
+
+  <!-- Album art -->
+  <div class="np-art">
+    <div class="np-art-bg"></div>
+    <div class="np-art-logo" id="np-art-logo">
+      <img src="assets/logo.png" alt="">
+    </div>
+    <!-- Real album cover from Spotify -->
+    <img id="np-cover" src="" alt="" style="
+      position:absolute;inset:0;width:100%;height:100%;
+      object-fit:cover;border-radius:inherit;
+      opacity:0;transition:opacity 0.5s;
+    ">
+    <div class="np-art-bars">
+      <div class="np-art-bar"></div>
+      <div class="np-art-bar"></div>
+      <div class="np-art-bar"></div>
+      <div class="np-art-bar"></div>
+      <div class="np-art-bar"></div>
+    </div>
+  </div>
+
+  <!-- Track info -->
+  <div class="np-info">
+    <div class="np-label">Сейчас играет</div>
+    <div class="np-track" id="np-track-name">HARD SESSIONS 001</div>
+    <div class="np-artist" id="np-artist-name">DJ LIVE — ХАРДБАР</div>
+  </div>
+
+  <!-- Separator -->
+  <div class="np-sep"></div>
+
+  <!-- Request button -->
+  <button class="np-btn" onclick="openDJ()" aria-label="Заказать трек">
+    <div class="np-btn-ico">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    </div>
+    <span class="np-btn-lbl">Заказать трек</span>
+  </button>
+
+</div>
+
+
+<!-- ═══════════════════════════════
      BOTTOM NAVIGATION (mobile)
 ═══════════════════════════════ -->
 <nav class="bottom-nav" id="bottomNav">
@@ -2098,9 +2463,9 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       Кабинет
     </a>
-    <a class="bottom-nav-item" href="#contacts" id="bn-contacts">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-      Контакты
+    <a class="bottom-nav-item" href="split.html" id="bn-split">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Счёт
     </a>
   </div>
 </nav>
@@ -2111,11 +2476,18 @@
 ═══════════════════════════════ -->
 <script>
 /* ── Loader ─────────────────────────────────── */
-setTimeout(() => {
-  document.getElementById('loader').classList.add('out');
-  setTimeout(() => document.getElementById('loader').remove(), 950);
+if (sessionStorage.getItem('skipLoader')) {
+  sessionStorage.removeItem('skipLoader');
+  const ld = document.getElementById('loader');
+  if (ld) ld.remove();
   observeFadeIns();
-}, 2500);
+} else {
+  setTimeout(() => {
+    document.getElementById('loader').classList.add('out');
+    setTimeout(() => document.getElementById('loader').remove(), 950);
+    observeFadeIns();
+  }, 2500);
+}
 
 /* ── Telegram WebApp init ────────────────────── */
 if (window.Telegram && window.Telegram.WebApp) {
@@ -2268,11 +2640,161 @@ barResetTimer();
 
 /* Audio engine loaded from shared file */
 
+/* ══════════════════════════════════════════
+   NOW PLAYING + SPOTIFY INTEGRATION
+══════════════════════════════════════════ */
+const NP_FALLBACK = [
+  { track: 'HARD SESSIONS 001',  artist: 'DJ LIVE — ХАРДБАР' },
+  { track: 'ACID FLOOR',         artist: 'ХАРДБАР / 132 BPM'  },
+  { track: 'DARK MATTER',        artist: 'DJ LIVE — ХАРДБАР'  },
+  { track: 'RED SIGNAL',         artist: 'ХАРДБАР / LIVE SET'  },
+  { track: 'TECHNO CATHEDRAL',   artist: 'DJ LIVE — 132 BPM'  },
+];
+let npFallbackIdx = 0;
+let npSpotifyActive = false;
+
+/* Smooth text swap */
+function npSetText(trackText, artistText) {
+  const tn = document.getElementById('np-track-name');
+  const an = document.getElementById('np-artist-name');
+  if (tn) { tn.style.opacity='0'; setTimeout(()=>{ tn.textContent=trackText;  tn.style.opacity='1'; }, 200); }
+  if (an) { an.style.opacity='0'; setTimeout(()=>{ an.textContent=artistText; an.style.opacity='1'; }, 260); }
+}
+
+/* Show/hide real album art */
+function npSetCover(url) {
+  const cover = document.getElementById('np-cover');
+  const logo  = document.getElementById('np-art-logo');
+  if (!cover) return;
+  if (url) {
+    cover.onload = () => { cover.style.opacity = '1'; if(logo) logo.style.opacity = '0'; };
+    cover.onerror = () => { cover.style.opacity = '0'; if(logo) logo.style.opacity = '1'; };
+    cover.src = url;
+  } else {
+    cover.style.opacity = '0';
+    if(logo) logo.style.opacity = '1';
+  }
+}
+
+function npSyncPlaying(isPlaying) {
+  const el = document.getElementById('nowPlaying');
+  if (el) el.classList.toggle('np-active', isPlaying);
+  const mw = document.getElementById('musicWidget');
+  if (mw) mw.classList.toggle('playing', isPlaying);
+}
+
 function toggleMusic() {
   const playing = HardbarAudio.toggle();
-  const widget = document.getElementById('musicWidget');
-  widget.classList.toggle('playing', playing);
+  npSyncPlaying(playing);
 }
+
+/* Add CSS transitions once */
+(function() {
+  ['np-track-name','np-artist-name'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.transition = 'opacity 0.22s';
+  });
+})();
+
+/* ── Fallback rotation (when Spotify not connected) ── */
+let fallbackTimer = null;
+function startFallback() {
+  if (fallbackTimer) return;
+  const t = NP_FALLBACK[npFallbackIdx];
+  npSetText(t.track, t.artist);
+  fallbackTimer = setInterval(() => {
+    npFallbackIdx = (npFallbackIdx + 1) % NP_FALLBACK.length;
+    const track = NP_FALLBACK[npFallbackIdx];
+    npSetText(track.track, track.artist);
+  }, 35000);
+}
+function stopFallback() {
+  if (fallbackTimer) { clearInterval(fallbackTimer); fallbackTimer = null; }
+}
+
+/* ── Spotify token management ─────────────── */
+async function spRefreshToken() {
+  const clientId    = localStorage.getItem('sp_client_id');
+  const refreshTok  = localStorage.getItem('sp_refresh_token');
+  if (!clientId || !refreshTok) return null;
+  try {
+    const res = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type:    'refresh_token',
+        refresh_token: refreshTok,
+        client_id:     clientId,
+      }),
+    });
+    const data = await res.json();
+    if (data.error) return null;
+    localStorage.setItem('sp_access_token', data.access_token);
+    localStorage.setItem('sp_expires_at', Date.now() + data.expires_in * 1000);
+    if (data.refresh_token) localStorage.setItem('sp_refresh_token', data.refresh_token);
+    return data.access_token;
+  } catch(_) { return null; }
+}
+
+async function spGetToken() {
+  const exp = parseInt(localStorage.getItem('sp_expires_at') || '0');
+  if (Date.now() > exp - 60000) return await spRefreshToken();
+  return localStorage.getItem('sp_access_token');
+}
+
+/* ── Fetch now playing ────────────────────── */
+async function spFetchNowPlaying() {
+  const token = await spGetToken();
+  if (!token) return null;
+  try {
+    const res = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (res.status === 204 || res.status === 401) return null;
+    const data = await res.json();
+    if (!data || !data.item) return null;
+    return {
+      track:    data.item.name,
+      artist:   data.item.artists.map(a => a.name).join(', '),
+      albumArt: data.item.album?.images?.[0]?.url || null,
+      isPlaying: data.is_playing,
+    };
+  } catch(_) { return null; }
+}
+
+/* ── Main polling loop ────────────────────── */
+async function npPoll() {
+  const hasToken = !!localStorage.getItem('sp_access_token');
+  if (!hasToken) {
+    if (!fallbackTimer) startFallback();
+    return;
+  }
+
+  const np = await spFetchNowPlaying();
+
+  if (!np) {
+    /* Spotify connected but nothing playing — fallback */
+    if (!npSpotifyActive) return;
+    npSpotifyActive = false;
+    npSetCover(null);
+    startFallback();
+    return;
+  }
+
+  /* Got real data */
+  if (!npSpotifyActive) {
+    stopFallback();
+    npSpotifyActive = true;
+  }
+
+  npSetText(np.track, np.artist);
+  npSetCover(np.albumArt);
+  npSyncPlaying(np.isPlaying);
+}
+
+/* Start polling: immediate + every 15s */
+npPoll();
+setInterval(npPoll, 15000);
 
 /* ── Countdown ───────────────────────────── */
 (function() {
@@ -2297,6 +2819,38 @@ function toggleMusic() {
   tick();
   setInterval(tick, 1000);
 })();
+
+/* ── DJ Music Request ─────────────────────── */
+function openDJ() {
+  document.getElementById('dj-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDJ() {
+  document.getElementById('dj-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function submitDJ() {
+  const artist = document.getElementById('dj-artist').value.trim();
+  const track = document.getElementById('dj-track').value.trim();
+  const artistInp = document.getElementById('dj-artist');
+  const trackInp = document.getElementById('dj-track');
+  artistInp.style.borderBottomColor = '';
+  trackInp.style.borderBottomColor = '';
+  if (!artist) { artistInp.style.borderBottomColor = 'var(--red-b)'; artistInp.focus(); return; }
+  if (!track)  { trackInp.style.borderBottomColor  = 'var(--red-b)'; trackInp.focus(); return; }
+  document.getElementById('dj-form').style.display = 'none';
+  document.getElementById('dj-success').style.display = 'block';
+  setTimeout(closeDJ, 3000);
+  setTimeout(() => {
+    document.getElementById('dj-form').style.display = 'block';
+    document.getElementById('dj-success').style.display = 'none';
+    artistInp.value = '';
+    trackInp.value = '';
+    document.getElementById('dj-wish').value = '';
+  }, 3300);
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDJ(); closeSplit(); } });
+
 
 /* ── QR Code ─────────────────────────────── */
 window.addEventListener('DOMContentLoaded', function() {

@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Spotify Connect — ХАРДБАР</title>
+  <style>
+    @font-face {
+      font-family: 'Disket Mono';
+      src: url('assets/DisketMono.ttf') format('truetype');
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --red: #cc0000; --red-b: #ff2020; --red-dim: rgba(204,0,0,0.45);
+      --green: #1db954; --green-b: #1ed760;
+    }
+    body {
+      background: #000; color: #fff;
+      font-family: 'Disket Mono', monospace;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 36px 20px 60px;
+    }
+    a { color: inherit; }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-thumb { background: var(--red-dim); }
+
+    /* Header */
+    .page-header {
+      width: 100%; max-width: 540px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 44px;
+    }
+    .header-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .header-logo img { height: 36px; mix-blend-mode: screen; object-fit: contain; }
+    .header-logo-name { font-size: 13px; font-weight: 900; letter-spacing: 4px; color: var(--red); }
+    .header-back {
+      font-size: 8px; letter-spacing: 3px; text-transform: uppercase;
+      color: rgba(255,255,255,0.35); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; transition: color .2s;
+    }
+    .header-back:hover { color: #fff; }
+
+    /* Card */
+    .card {
+      width: 100%; max-width: 540px;
+      background: #080000; border: 1px solid rgba(204,0,0,0.22);
+      padding: 40px 36px; position: relative; overflow: hidden;
+    }
+    .card::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(204,0,0,0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(204,0,0,0.022) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* Mode tabs */
+    .mode-tabs {
+      display: flex; margin-bottom: 36px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .mode-tab {
+      flex: 1; padding: 12px; text-align: center;
+      font-family: 'Disket Mono', monospace; font-size: 9px;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: rgba(255,255,255,0.3); background: none; border: none;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      cursor: pointer; transition: all .2s;
+    }
+    .mode-tab.active { color: #fff; border-bottom-color: var(--green); }
+    .mode-tab:hover:not(.active) { color: rgba(255,255,255,0.6); }
+
+    .mode-panel { display: none; }
+    .mode-panel.active { display: block; }
+
+    /* Eyebrow / title */
+    .card-eyebrow { font-size: 8px; letter-spacing: 5px; text-transform: uppercase; color: var(--red); margin-bottom: 8px; }
+    .card-title { font-size: clamp(20px,4vw,28px); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px; line-height: 1.1; }
+    .card-title span { color: var(--green); }
+    .card-sub { font-size: 12px; color: rgba(255,255,255,0.32); font-weight: 400; line-height: 1.7; margin-bottom: 32px; }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; margin-bottom: 28px; }
+    .step { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .step:last-child { border-bottom: none; padding-bottom: 0; }
+    .step-num {
+      flex-shrink: 0; width: 26px; height: 26px;
+      border: 1px solid rgba(204,0,0,0.35);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: var(--red); margin-top: 1px;
+    }
+    .step-body { flex: 1; }
+    .step-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #fff; margin-bottom: 5px; }
+    .step-desc { font-size: 11px; color: rgba(255,255,255,0.32); font-weight: 400; line-height: 1.65; }
+    .step-desc a { color: var(--green); text-decoration: none; border-bottom: 1px solid rgba(29,185,84,0.25); transition: border-color .2s; }
+    .step-desc a:hover { border-bottom-color: var(--green); }
+    .step-desc strong { color: rgba(255,255,255,0.65); font-weight: 700; }
+    .step-desc em { color: rgba(255,255,255,0.5); font-style: normal; }
+    .step-img {
+      margin-top: 10px; padding: 10px 14px;
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+      font-size: 11px; color: rgba(255,255,255,0.55); line-height: 1.5;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .step-img svg { flex-shrink: 0; opacity: .6; }
+    .step-link {
+      display: inline-flex; align-items: center; gap: 7px; margin-top: 10px;
+      font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+      color: rgba(29,185,84,0.85); text-decoration: none;
+      border: 1px solid rgba(29,185,84,0.2); padding: 8px 14px;
+      transition: all .2s;
+    }
+    .step-link:hover { border-color: var(--green); color: var(--green); background: rgba(29,185,84,0.05); }
+
+    /* Form */
+    .form-lbl { display: block; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+    .form-inp {
+      width: 100%; background: rgba(255,255,255,0.04);
+      border: none; border-bottom: 1px solid rgba(204,0,0,0.38);
+      color: #fff; padding: 13px 14px; font-size: 14px;
+      font-family: 'Disket Mono', monospace; outline: none;
+      letter-spacing: .5px; transition: border-color .3s, background .3s;
+    }
+    .form-inp:focus { border-bottom-color: var(--red-b); background: rgba(204,0,0,0.05); }
+    .form-inp::placeholder { color: rgba(255,255,255,0.18); font-size: 12px; }
+    .form-error { font-size: 9px; color: var(--red-b); letter-spacing: 1px; display: none; margin-top: 6px; }
+    .form-error.show { display: block; }
+
+    .form-field { margin-bottom: 20px; }
+
+    .btn-green {
+      width: 100%; font-family: 'Disket Mono', monospace; font-size: 10px;
+      letter-spacing: 4px; text-transform: uppercase;
+      background: var(--green); color: #000; border: none; padding: 16px;
+      cursor: pointer; transition: all .25s; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 4px;
+    }
+    .btn-green:hover { background: var(--green-b); box-shadow: 0 0 24px rgba(29,185,84,.3); }
+    .btn-red {
+      width: 100%; font-family: 'Disket Mono', monospace; font-size: 10px;
+      letter-spacing: 4px; text-transform: uppercase;
+      background: var(--red); color: #fff; border: none; padding: 16px;
+      cursor: pointer; transition: all .25s;
+      display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 4px;
+    }
+    .btn-red:hover { background: var(--red-b); box-shadow: 0 0 24px rgba(204,0,0,.35); }
+
+    /* Redirect URI box */
+    .uri-box {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      padding: 10px 14px; margin-top: 8px;
+      font-size: 11px; color: rgba(255,255,255,0.6);
+      word-break: break-all; letter-spacing: .3px; line-height: 1.5;
+    }
+    .copy-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; flex-wrap: wrap; }
+    .btn-copy {
+      font-family: 'Disket Mono', monospace; font-size: 8px; letter-spacing: 2px;
+      text-transform: uppercase; background: none; color: rgba(255,255,255,0.3);
+      border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px; cursor: pointer;
+      transition: all .2s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-copy:hover { border-color: rgba(255,255,255,.3); color: rgba(255,255,255,.7); }
+    .btn-copy.ok { color: var(--green); border-color: rgba(29,185,84,.35); }
+
+    /* Warning badge */
+    .badge-warning {
+      display: inline-flex; align-items: center; gap: 7px; margin-bottom: 24px;
+      background: rgba(204,0,0,0.1); border: 1px solid rgba(204,0,0,0.3);
+      padding: 10px 14px; font-size: 10px; color: rgba(255,255,255,0.55);
+      font-weight: 400; letter-spacing: .5px; line-height: 1.5;
+    }
+    .badge-ok {
+      display: inline-flex; align-items: center; gap: 7px; margin-bottom: 24px;
+      background: rgba(29,185,84,0.08); border: 1px solid rgba(29,185,84,0.25);
+      padding: 10px 14px; font-size: 10px; color: rgba(255,255,255,0.55);
+      font-weight: 400; letter-spacing: .5px; line-height: 1.5;
+    }
+
+    /* Loading */
+    #state-loading { text-align: center; padding: 40px 0; }
+    .loader-ring {
+      width: 44px; height: 44px;
+      border: 2px solid rgba(255,255,255,0.06); border-top-color: var(--green);
+      border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader-text { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: rgba(255,255,255,.3); }
+
+    /* Success */
+    #state-success { text-align: center; }
+    .success-av {
+      width: 68px; height: 68px; border-radius: 50%; object-fit: cover;
+      margin: 0 auto 14px; display: none; border: 2px solid rgba(29,185,84,.4);
+    }
+    .success-icon-circle {
+      width: 68px; height: 68px; border-radius: 50%;
+      background: rgba(29,185,84,.1); border: 1px solid rgba(29,185,84,.25);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;
+    }
+    .success-title { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #fff; margin-bottom: 6px; }
+    .success-name { font-size: 15px; color: var(--green); letter-spacing: 1px; margin-bottom: 4px; }
+    .success-email { font-size: 10px; color: rgba(255,255,255,.28); font-weight: 400; margin-bottom: 28px; }
+    .success-note { font-size: 11px; color: rgba(255,255,255,.3); font-weight: 400; line-height: 1.7; margin-bottom: 24px; border-top: 1px solid rgba(255,255,255,.05); padding-top: 22px; }
+    .btn-goto {
+      display: block; width: 100%; font-family: 'Disket Mono', monospace;
+      font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+      background: var(--red); color: #fff; border: none; padding: 16px;
+      cursor: pointer; transition: all .25s; text-decoration: none; text-align: center; margin-bottom: 10px;
+    }
+    .btn-goto:hover { background: var(--red-b); box-shadow: 0 0 22px rgba(204,0,0,.35); }
+    .btn-disconnect {
+      display: block; width: 100%; font-family: 'Disket Mono', monospace;
+      font-size: 8px; letter-spacing: 2px; text-transform: uppercase;
+      color: rgba(255,255,255,.18); background: none; border: none;
+      padding: 8px; cursor: pointer; transition: color .2s;
+    }
+    .btn-disconnect:hover { color: rgba(255,255,255,.5); }
+
+    /* Error */
+    #state-error { text-align: center; }
+    .error-emoji { font-size: 40px; margin-bottom: 16px; }
+    .error-msg { font-size: 11px; color: rgba(255,255,255,.35); font-weight: 400; margin-bottom: 24px; }
+
+    /* Footer note */
+    .foot-note {
+      width: 100%; max-width: 540px; margin-top: 16px;
+      padding: 14px 18px; border-left: 2px solid rgba(204,0,0,.25);
+    }
+    .foot-note p { font-size: 10px; color: rgba(255,255,255,.22); font-weight: 400; line-height: 1.7; }
+    .foot-note strong { color: rgba(255,255,255,.45); }
+
+    @media (max-width: 540px) {
+      body { padding: 20px 12px 40px; }
+      .card { padding: 28px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <a class="header-logo" href="index.html">
+    <img src="assets/logo(центр hero-секции).png" alt="">
+    <span class="header-logo-name">ХАРДБАР</span>
+  </a>
+  <a class="header-back" href="index.html">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    На сайт
+  </a>
+</div>
+
+
+<!-- ══ SETUP CARD ══════════════════════════════ -->
+<div class="card" id="state-setup">
+
+  <div class="card-eyebrow">Интеграция</div>
+  <div class="card-title">Подключить <span>Spotify</span></div>
+  <div class="card-sub">Виджет «Сейчас играет» будет показывать реальный трек с твоего аккаунта — название, артист и обложка альбома в реальном времени.</div>
+
+  <!-- Tabs -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="switchMode('quick', this)">⚡ Быстрый тест</button>
+    <button class="mode-tab" onclick="switchMode('oauth', this)">🔐 OAuth (постоянный)</button>
+  </div>
+
+  <!-- ─ QUICK MODE ─────────────────────────── -->
+  <div class="mode-panel active" id="panel-quick">
+
+    <div class="badge-ok">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1db954" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Работает везде — не нужен HTTPS и сервер
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Открой Spotify Console</div>
+          <div class="step-desc">
+            Перейди по ссылке — это официальный инструмент разработчика Spotify для тестирования API:
+          </div>
+          <a class="step-link" href="https://developer.spotify.com/console/get-users-currently-playing-track/" target="_blank">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Открыть Spotify Console
+          </a>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Получи токен</div>
+          <div class="step-desc">
+            На странице Console нажми кнопку <strong>«Get token»</strong>. Отметь галочки:<br>
+            <em>user-read-currently-playing</em> и <em>user-read-playback-state</em>.<br>
+            Нажми <strong>«Request token»</strong> → войди в свой Spotify аккаунт.
+          </div>
+          <div class="step-img">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Токен действует 1 час. Когда истечёт — повтори процедуру.
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Вставь токен сюда</div>
+          <div class="step-desc">Скопируй длинную строку из поля «OAuth Token» и вставь ниже.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-lbl" for="quick-token">OAuth Token из Spotify Console</label>
+      <input class="form-inp" type="text" id="quick-token"
+        placeholder="BQA...длинная строка из Console..."
+        autocomplete="off" spellcheck="false">
+      <div class="form-error" id="quick-error">Токен слишком короткий — убедись, что скопировал полностью</div>
+    </div>
+
+    <button class="btn-green" onclick="saveQuickToken()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Подключить
+    </button>
+  </div>
+
+
+  <!-- ─ OAUTH MODE ─────────────────────────── -->
+  <div class="mode-panel" id="panel-oauth">
+
+    <div class="badge-warning">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cc4400" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Требует HTTPS — сначала разверни сайт на Netlify или другом хостинге
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Разверни сайт с HTTPS</div>
+          <div class="step-desc">
+            Перетащи папку с сайтом на <a href="https://app.netlify.com/drop" target="_blank">app.netlify.com/drop</a> — получишь бесплатный HTTPS-адрес за 30 секунд.
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Создай Spotify App</div>
+          <div class="step-desc">
+            На <a href="https://developer.spotify.com/dashboard" target="_blank">developer.spotify.com/dashboard</a> создай приложение, в <strong>Edit settings → Redirect URIs</strong> добавь этот адрес:
+          </div>
+          <div class="uri-box" id="oauth-redirect-uri">Открой эту страницу через HTTPS чтобы увидеть URI</div>
+          <div class="copy-row">
+            <button class="btn-copy" id="copy-uri-btn" onclick="copyUri()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Скопировать
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Введи Client ID</div>
+          <div class="step-desc">Client ID находится на главной странице твоего приложения в Spotify Dashboard.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-lbl" for="oauth-client-id">Client ID</label>
+      <input class="form-inp" type="text" id="oauth-client-id"
+        placeholder="32-символьный ID из Spotify Dashboard"
+        autocomplete="off" spellcheck="false">
+      <div class="form-error" id="oauth-error">Введи корректный Client ID</div>
+    </div>
+
+    <button class="btn-green" onclick="startOAuth()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      Подключить через OAuth
+    </button>
+  </div>
+
+</div><!-- /state-setup -->
+
+
+<!-- ══ LOADING ════════════════════════════════ -->
+<div class="card" id="state-loading" style="display:none;">
+  <div class="loader-ring"></div>
+  <div class="loader-text">Подключаем аккаунт...</div>
+</div>
+
+
+<!-- ══ SUCCESS ════════════════════════════════ -->
+<div class="card" id="state-success" style="display:none;">
+  <img src="" alt="" class="success-av" id="success-av">
+  <div class="success-icon-circle" id="success-icon">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1db954" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+  </div>
+  <div class="success-title">Spotify подключён</div>
+  <div class="success-name" id="success-name">—</div>
+  <div class="success-email" id="success-email">—</div>
+  <div class="success-note">
+    Виджет на главной странице теперь показывает реальный трек, артиста и обложку альбома. Обновление каждые 15 секунд.
+  </div>
+  <a class="btn-goto" href="index.html">← Вернуться на сайт</a>
+  <button class="btn-disconnect" onclick="disconnect()">Отключить аккаунт</button>
+</div>
+
+
+<!-- ══ ERROR ══════════════════════════════════ -->
+<div class="card" id="state-error" style="display:none;">
+  <div class="error-emoji">⚠️</div>
+  <div class="success-title">Что-то пошло не так</div>
+  <div class="error-msg" id="error-msg">Попробуй снова</div>
+  <button class="btn-red" onclick="showSetup()">Попробовать снова</button>
+</div>
+
+
+<div class="foot-note">
+  <p><strong>Быстрый тест:</strong> токен живёт 1 час — потом нужно обновить в Spotify Console. <strong>OAuth режим</strong> работает постоянно и обновляет токен автоматически, но требует HTTPS-хостинга.</p>
+</div>
+
+
+<script>
+/* ── UI helpers ──────────────────────────────── */
+function showState(id) {
+  ['state-setup','state-loading','state-success','state-error']
+    .forEach(s => document.getElementById(s).style.display = s === id ? 'block' : 'none');
+}
+function showSetup() { showState('state-setup'); }
+
+function switchMode(mode, btn) {
+  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + mode).classList.add('active');
+}
+
+/* Show redirect URI */
+(function() {
+  const uri = location.protocol + '//' + location.host + location.pathname;
+  const el = document.getElementById('oauth-redirect-uri');
+  if (el) el.textContent = location.protocol === 'https:' ? uri : '⚠ Открой через HTTPS — сейчас ' + location.protocol;
+})();
+
+function copyUri() {
+  const txt = document.getElementById('oauth-redirect-uri').textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.getElementById('copy-uri-btn');
+    btn.classList.add('ok');
+    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Скопировано';
+    setTimeout(() => { btn.classList.remove('ok'); btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Скопировать'; }, 2500);
+  });
+}
+
+/* ── QUICK TOKEN ─────────────────────────────── */
+async function saveQuickToken() {
+  const token = document.getElementById('quick-token').value.trim();
+  const errEl = document.getElementById('quick-error');
+  if (token.length < 50) { errEl.classList.add('show'); return; }
+  errEl.classList.remove('show');
+  showState('state-loading');
+  try {
+    const res = await fetch('https://api.spotify.com/v1/me', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (!res.ok) throw new Error('Токен не валидный или истёк');
+    const profile = await res.json();
+    // Store with 1h expiry
+    localStorage.setItem('sp_access_token', token);
+    localStorage.setItem('sp_expires_at', Date.now() + 3600 * 1000);
+    localStorage.removeItem('sp_refresh_token'); // no refresh for quick token
+    localStorage.removeItem('sp_client_id');
+    renderSuccess(profile);
+  } catch(e) {
+    showState('state-error');
+    document.getElementById('error-msg').textContent = e.message;
+  }
+}
+
+/* ── OAUTH PKCE ──────────────────────────────── */
+function generateVerifier(len = 128) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const arr = crypto.getRandomValues(new Uint8Array(len));
+  return Array.from(arr, b => chars[b % chars.length]).join('');
+}
+async function generateChallenge(v) {
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
+  return btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+}
+
+async function startOAuth() {
+  const clientId = document.getElementById('oauth-client-id').value.trim();
+  const errEl = document.getElementById('oauth-error');
+  if (clientId.length < 10) { errEl.classList.add('show'); return; }
+  errEl.classList.remove('show');
+  const verifier = generateVerifier();
+  const challenge = await generateChallenge(verifier);
+  localStorage.setItem('sp_verifier', verifier);
+  localStorage.setItem('sp_client_id', clientId);
+  localStorage.setItem('sp_redirect', location.origin + location.pathname);
+  const params = new URLSearchParams({
+    client_id: clientId, response_type: 'code',
+    redirect_uri: location.origin + location.pathname,
+    code_challenge_method: 'S256', code_challenge: challenge,
+    scope: 'user-read-currently-playing user-read-playback-state user-read-private user-read-email',
+  });
+  location.href = 'https://accounts.spotify.com/authorize?' + params;
+}
+
+async function handleOAuthCallback() {
+  const code  = new URLSearchParams(location.search).get('code');
+  const error = new URLSearchParams(location.search).get('error');
+  if (error) { showState('state-error'); document.getElementById('error-msg').textContent = error === 'access_denied' ? 'Авторизация отклонена' : error; history.replaceState({}, '', location.pathname); return true; }
+  if (!code) return false;
+  showState('state-loading');
+  history.replaceState({}, '', location.pathname);
+  const clientId = localStorage.getItem('sp_client_id');
+  const verifier = localStorage.getItem('sp_verifier');
+  const redirectUri = localStorage.getItem('sp_redirect');
+  try {
+    const res = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: redirectUri, client_id: clientId, code_verifier: verifier }),
+    });
+    const tokens = await res.json();
+    if (tokens.error) throw new Error(tokens.error_description || tokens.error);
+    localStorage.setItem('sp_access_token',  tokens.access_token);
+    localStorage.setItem('sp_refresh_token', tokens.refresh_token);
+    localStorage.setItem('sp_expires_at',    Date.now() + tokens.expires_in * 1000);
+    localStorage.removeItem('sp_verifier');
+    const me = await fetch('https://api.spotify.com/v1/me', { headers: { Authorization: 'Bearer ' + tokens.access_token } });
+    renderSuccess(await me.json());
+  } catch(e) { showState('state-error'); document.getElementById('error-msg').textContent = e.message; }
+  return true;
+}
+
+/* ── Render success ──────────────────────────── */
+function renderSuccess(profile) {
+  showState('state-success');
+  document.getElementById('success-name').textContent  = profile.display_name || profile.id || '—';
+  document.getElementById('success-email').textContent = profile.email || '';
+  const imgUrl = profile.images?.[0]?.url;
+  if (imgUrl) {
+    const av = document.getElementById('success-av');
+    av.src = imgUrl; av.style.display = 'block';
+    document.getElementById('success-icon').style.display = 'none';
+  }
+}
+
+/* ── Disconnect ──────────────────────────────── */
+function disconnect() {
+  ['sp_access_token','sp_refresh_token','sp_expires_at','sp_client_id','sp_redirect','sp_verifier']
+    .forEach(k => localStorage.removeItem(k));
+  showSetup();
+}
+
+/* ── Check if already connected ─────────────── */
+async function checkConnected() {
+  const token = localStorage.getItem('sp_access_token');
+  if (!token) return false;
+  showState('state-loading');
+  try {
+    const res = await fetch('https://api.spotify.com/v1/me', { headers: { Authorization: 'Bearer ' + token } });
+    if (!res.ok) { showSetup(); return false; }
+    renderSuccess(await res.json());
+    return true;
+  } catch(_) { showSetup(); return false; }
+}
+
+/* ── Init ────────────────────────────────────── */
+(async () => {
+  const handled = await handleOAuthCallback();
+  if (!handled) await checkConnected();
+})();
+</script>
+
+</body>
+</html>

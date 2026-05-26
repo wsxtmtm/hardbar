@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Счёт и оплата — ХАРДБАР</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    @font-face {
+      font-family: 'Disket Mono';
+      src: url('assets/DisketMono.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+  </style>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --red:      #cc0000;
+      --red-b:    #ff2020;
+      --red-dim:  rgba(204,0,0,0.45);
+      --red-glow: rgba(204,0,0,0.15);
+      --chrome:   #c0c0c0;
+      --nav-h:    68px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Disket Mono', monospace;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: #000; }
+    ::-webkit-scrollbar-thumb { background: var(--red-dim); }
+
+    /* ── NAV ─────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(204,0,0,0.15);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .nav-logo img { height: 40px; width: auto; object-fit: contain; mix-blend-mode: screen; }
+
+    .nav-back {
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: #fff; }
+    .nav-back svg { transition: transform 0.2s; }
+    .nav-back:hover svg { transform: translateX(-3px); }
+
+    /* ── HERO ─────────────────────────────── */
+    .sp-hero {
+      padding-top: calc(var(--nav-h) + 72px);
+      padding-bottom: 60px;
+      padding-left: 40px;
+      padding-right: 40px;
+      max-width: 1100px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+    .sp-hero::before {
+      content: 'SPLIT';
+      position: absolute;
+      right: -10px;
+      top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      font-size: 130px;
+      font-weight: 900;
+      color: rgba(204,0,0,0.03);
+      letter-spacing: 22px;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .sp-eyebrow {
+      font-size: 9px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 14px;
+    }
+    .sp-title {
+      font-size: clamp(34px, 6vw, 60px);
+      font-weight: 900;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      line-height: 1.05;
+      margin-bottom: 16px;
+    }
+    .sp-title span { color: var(--red); }
+    .sp-sub {
+      font-size: 14px;
+      color: rgba(255,255,255,0.4);
+      font-weight: 400;
+      max-width: 460px;
+      line-height: 1.7;
+    }
+    .sp-divider {
+      width: 40px; height: 1px;
+      background: var(--red);
+      margin: 24px 0;
+      box-shadow: 0 0 8px rgba(204,0,0,0.5);
+    }
+
+    /* ── MAIN WRAP ────────────────────────── */
+    .sp-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px 100px;
+    }
+
+    .sp-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 56px;
+      align-items: start;
+    }
+
+    /* ── CALCULATOR PANEL ─────────────────── */
+    .calc-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .field-block { }
+    .field-label {
+      display: block;
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 10px;
+    }
+
+    .amount-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: none;
+      border-bottom: 1px solid rgba(204,0,0,0.4);
+      color: #fff;
+      padding: 14px 16px;
+      font-size: 28px;
+      font-family: 'Disket Mono', monospace;
+      outline: none;
+      transition: border-color 0.3s, background 0.3s;
+      letter-spacing: 2px;
+    }
+    .amount-input:focus {
+      border-bottom-color: var(--red-b);
+      background: rgba(204,0,0,0.05);
+    }
+    .amount-input::placeholder { color: rgba(255,255,255,0.2); font-size: 20px; }
+
+    /* Stepper */
+    .stepper-row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1px solid rgba(204,0,0,0.25);
+    }
+    .stepper-btn {
+      width: 52px;
+      height: 52px;
+      background: rgba(204,0,0,0.08);
+      border: none;
+      color: #fff;
+      font-size: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+      font-family: 'Disket Mono', monospace;
+      line-height: 1;
+    }
+    .stepper-btn:hover { background: var(--red); }
+    .stepper-center {
+      flex: 1;
+      text-align: center;
+      padding: 8px 0;
+    }
+    .stepper-num {
+      font-size: 40px;
+      font-family: 'Disket Mono', monospace;
+      color: #fff;
+      line-height: 1;
+      display: block;
+    }
+    .stepper-sub {
+      font-size: 7px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin-top: 3px;
+      display: block;
+    }
+
+    /* Tip buttons */
+    .tip-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .tip-btn {
+      font-family: 'Disket Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: transparent;
+      color: rgba(255,255,255,0.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 12px 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .tip-btn:hover:not(.active) {
+      border-color: rgba(255,255,255,0.28);
+      color: rgba(255,255,255,0.7);
+    }
+    .tip-btn.active {
+      background: var(--red);
+      color: #fff;
+      border-color: var(--red);
+      box-shadow: 0 0 14px rgba(204,0,0,0.3);
+    }
+
+    /* ── RESULT PANEL ─────────────────────── */
+    .result-panel {
+      position: sticky;
+      top: calc(var(--nav-h) + 24px);
+    }
+
+    .result-card {
+      background: linear-gradient(145deg, #120000 0%, #0a0000 50%, #150000 100%);
+      border: 1px solid rgba(204,0,0,0.28);
+      padding: 36px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .result-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(204,0,0,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(204,0,0,0.03) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+    }
+
+    .result-eyebrow {
+      font-size: 7px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .result-per-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 6px;
+      position: relative;
+    }
+    .result-amount {
+      font-size: clamp(48px, 8vw, 72px);
+      font-family: 'Disket Mono', monospace;
+      color: #fff;
+      line-height: 1;
+      text-shadow: 0 0 40px rgba(204,0,0,0.45);
+      position: relative;
+      margin-bottom: 4px;
+    }
+    .result-currency {
+      font-size: 28px;
+      color: var(--red);
+    }
+
+    .result-sep {
+      height: 1px;
+      background: rgba(255,255,255,0.06);
+      margin: 24px 0;
+      position: relative;
+    }
+
+    .result-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .result-row-key {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+    }
+    .result-row-val {
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 1px;
+    }
+    .result-row-val.accent { color: var(--red); }
+
+    /* Payment methods */
+    .pay-label {
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .pay-methods {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .pay-method {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,0.07);
+      cursor: pointer;
+      transition: all 0.25s;
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      font-family: 'Disket Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-align: left;
+      width: 100%;
+    }
+    .pay-method:hover {
+      border-color: rgba(204,0,0,0.3);
+      color: rgba(255,255,255,0.8);
+      background: rgba(204,0,0,0.04);
+    }
+    .pay-method.selected {
+      border-color: var(--red);
+      color: #fff;
+      background: rgba(204,0,0,0.08);
+    }
+    .pay-method-ico {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .pay-method-ico svg { opacity: 0.7; transition: opacity 0.2s; }
+    .pay-method.selected .pay-method-ico svg { opacity: 1; }
+    .pay-method-name { flex: 1; }
+    .pay-method-check {
+      width: 16px;
+      height: 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .pay-method.selected .pay-method-check {
+      border-color: var(--red);
+      background: var(--red);
+      box-shadow: 0 0 8px rgba(204,0,0,0.5);
+    }
+    .pay-method.selected .pay-method-check::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      background: #fff;
+      border-radius: 50%;
+    }
+
+    /* Pay button */
+    .btn-pay {
+      width: 100%;
+      font-family: 'Disket Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      padding: 18px;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+    }
+    .btn-pay:hover {
+      background: var(--red-b);
+      box-shadow: 0 0 28px rgba(204,0,0,0.45);
+    }
+    .btn-pay:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+    .btn-pay:disabled:hover {
+      background: var(--red);
+      box-shadow: none;
+    }
+    .btn-pay-note {
+      font-size: 8px;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.18);
+      text-align: center;
+      margin-top: 12px;
+      font-weight: 400;
+      position: relative;
+    }
+
+    /* Bar call badge */
+    .bar-call-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(204,0,0,0.06);
+      border: 1px solid rgba(204,0,0,0.18);
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .bar-call-badge svg { flex-shrink: 0; opacity: 0.55; }
+    .bar-call-badge-text {
+      font-size: 8px;
+      letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.35);
+      line-height: 1.6;
+      font-weight: 400;
+    }
+
+    /* ── PERSON SPLIT LIST ────────────────── */
+    .persons-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .person-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .person-row:first-child { border-top: 1px solid rgba(255,255,255,0.04); }
+    .person-num {
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.25);
+      text-transform: uppercase;
+      min-width: 80px;
+    }
+    .person-dots {
+      flex: 1;
+      border-bottom: 1px dotted rgba(255,255,255,0.07);
+      margin: 0 12px;
+      height: 1px;
+      align-self: center;
+    }
+    .person-amount {
+      font-size: 15px;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 1px;
+    }
+
+    /* ── PAYMENT SUCCESS ──────────────────── */
+    #pay-success {
+      display: none;
+      text-align: center;
+      padding: 40px 0 20px;
+    }
+    .pay-success-icon {
+      font-size: 52px;
+      margin-bottom: 20px;
+    }
+    .pay-success-title {
+      font-size: 14px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .pay-success-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 1.5px;
+      line-height: 1.8;
+      font-weight: 400;
+    }
+
+    /* ── BOTTOM NAV ────────────────────────── */
+    .bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 600;
+      background: rgba(5,0,0,0.96);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(204,0,0,0.22);
+      padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
+    }
+    .bottom-nav-items {
+      display: flex;
+      align-items: stretch;
+    }
+    .bottom-nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 4px;
+      color: rgba(255,255,255,0.35);
+      text-decoration: none;
+      font-size: 6.5px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      background: none;
+      border: none;
+      min-height: 54px;
+      transition: color 0.2s;
+      font-family: 'Disket Mono', monospace;
+    }
+    .bottom-nav-item svg { width: 20px; height: 20px; margin-bottom: 1px; }
+    .bottom-nav-item.active { color: #fff; }
+    .bottom-nav-item.active svg { stroke: var(--red); }
+
+    /* ── RESPONSIVE ───────────────────────── */
+    @media (max-width: 900px) {
+      .sp-grid { grid-template-columns: 1fr; gap: 48px; }
+      .result-panel { position: static; }
+    }
+
+    @media (max-width: 768px) {
+      body { padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px)); }
+      .bottom-nav { display: block; }
+
+      nav { height: 56px; padding: 0 16px; }
+      .nav-logo img { height: 34px; }
+
+      .sp-hero {
+        padding-top: calc(56px + 40px);
+        padding-left: 18px;
+        padding-right: 18px;
+        padding-bottom: 40px;
+      }
+      .sp-title { font-size: clamp(28px, 8vw, 48px); }
+      .sp-sub { font-size: 13px; }
+
+      .sp-wrap { padding: 0 18px 60px; }
+      .sp-grid { gap: 32px; }
+
+      .amount-input { font-size: 22px; }
+      .result-amount { font-size: clamp(44px, 12vw, 64px); }
+      .result-card { padding: 24px 20px; }
+      .tip-grid { gap: 6px; }
+      .tip-btn { font-size: 8px; padding: 10px 4px; }
+    }
+
+    @media (max-width: 400px) {
+      .sp-title { font-size: 26px; letter-spacing: 2px; }
+      .tip-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ──────────────────────────────────── -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <img src="assets/logo(центр hero-секции).png" alt="ХАРДБАР">
+  </a>
+  <a class="nav-back" href="index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Назад
+  </a>
+</nav>
+
+
+<!-- ── HERO ─────────────────────────────────── -->
+<div class="sp-hero">
+  <div class="sp-eyebrow">ХАРДБАР — Счёт</div>
+  <div class="sp-title">Разделить<br><span>счёт</span></div>
+  <div class="sp-divider"></div>
+  <div class="sp-sub">Введи сумму, выбери количество человек и чаевые — увидишь сколько платит каждый.</div>
+</div>
+
+
+<!-- ── MAIN ─────────────────────────────────── -->
+<div class="sp-wrap">
+  <div class="sp-grid">
+
+    <!-- ─── Левая колонка: ввод ─────────────── -->
+    <div class="calc-panel">
+
+      <!-- Сумма счёта -->
+      <div class="field-block">
+        <label class="field-label" for="inp-total">Сумма счёта</label>
+        <input
+          class="amount-input"
+          type="number"
+          id="inp-total"
+          placeholder="0 ₽"
+          min="0"
+          inputmode="numeric"
+          oninput="calc()"
+        >
+      </div>
+
+      <!-- Количество человек -->
+      <div class="field-block">
+        <label class="field-label">Количество человек</label>
+        <div class="stepper-row">
+          <button class="stepper-btn" onclick="changePeople(-1)" aria-label="Меньше">−</button>
+          <div class="stepper-center">
+            <span class="stepper-num" id="people-num">2</span>
+            <span class="stepper-sub" id="people-sub">человека</span>
+          </div>
+          <button class="stepper-btn" onclick="changePeople(1)" aria-label="Больше">+</button>
+        </div>
+      </div>
+
+      <!-- Чаевые -->
+      <div class="field-block">
+        <label class="field-label">Чаевые</label>
+        <div class="tip-grid">
+          <button class="tip-btn active" onclick="setTip(0,this)">Без</button>
+          <button class="tip-btn" onclick="setTip(10,this)">10%</button>
+          <button class="tip-btn" onclick="setTip(15,this)">15%</button>
+          <button class="tip-btn" onclick="setTip(20,this)">20%</button>
+        </div>
+      </div>
+
+      <!-- Список по людям -->
+      <div class="field-block" id="persons-block" style="display:none;">
+        <label class="field-label">Разбивка по людям</label>
+        <div class="persons-list" id="persons-list"></div>
+      </div>
+
+    </div>
+
+    <!-- ─── Правая колонка: итог + оплата ──── -->
+    <div class="result-panel">
+      <div class="result-card">
+        <div class="result-eyebrow">Итог</div>
+
+        <div class="result-per-label">С каждого</div>
+        <div class="result-amount">
+          <span id="res-per">0</span><span class="result-currency"> ₽</span>
+        </div>
+
+        <div class="result-sep"></div>
+
+        <div class="result-rows">
+          <div class="result-row">
+            <span class="result-row-key">Счёт</span>
+            <span class="result-row-val" id="res-base">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-row-key">Чаевые</span>
+            <span class="result-row-val accent" id="res-tips">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-row-key">Итого</span>
+            <span class="result-row-val" id="res-total">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-row-key">Человек</span>
+            <span class="result-row-val" id="res-people">2</span>
+          </div>
+        </div>
+
+        <div id="pay-section">
+          <div class="pay-label">Как будете платить</div>
+          <div class="pay-methods">
+
+            <button class="pay-method selected" onclick="selectMethod(this,'Картой')" data-method="Картой">
+              <span class="pay-method-ico">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              </span>
+              <span class="pay-method-name">Банковская карта</span>
+              <span class="pay-method-check"></span>
+            </button>
+
+            <button class="pay-method" onclick="selectMethod(this,'СБП')" data-method="СБП">
+              <span class="pay-method-ico">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 2.09 4.18 2 2 0 0 1 4.07 2h3a2 2 0 0 1 2 1.72c.127.96.36 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </span>
+              <span class="pay-method-name">СБП — Быстрые платежи</span>
+              <span class="pay-method-check"></span>
+            </button>
+
+            <button class="pay-method" onclick="selectMethod(this,'Наличными')" data-method="Наличными">
+              <span class="pay-method-ico">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+              </span>
+              <span class="pay-method-name">Наличные</span>
+              <span class="pay-method-check"></span>
+            </button>
+
+          </div>
+
+          <div class="bar-call-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+            <span class="bar-call-badge-text">Бармен увидит сумму и способ оплаты — подойдёт с нужным терминалом или сдачей</span>
+          </div>
+
+          <button class="btn-pay" id="btn-pay" onclick="callBar()" disabled>Позвать бармена — <span id="btn-pay-amount">0 ₽</span></button>
+          <div class="btn-pay-note">Оплата производится на барной стойке</div>
+        </div>
+
+        <!-- Success state -->
+        <div id="pay-success">
+          <div class="pay-success-icon">🔔</div>
+          <div class="pay-success-title">Бармен уведомлён</div>
+          <div class="pay-success-sub">
+            Ожидайте — подойдём к вам.<br>
+            Способ оплаты: <span id="success-method" style="color:#fff;">—</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ── BOTTOM NAV ────────────────────────────── -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-items">
+    <a class="bottom-nav-item" href="index.html#bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H6a2 2 0 0 0-2 2v16h16V5a2 2 0 0 0-2-2h-2M8 3V1M16 3V1M3 10h18"/></svg>
+      Бар
+    </a>
+    <a class="bottom-nav-item" href="index.html#menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+      Меню
+    </a>
+    <a class="bottom-nav-item active" href="split.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Счёт
+    </a>
+    <a class="bottom-nav-item" href="loyalty.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Кабинет
+    </a>
+    <a class="bottom-nav-item" href="index.html#contacts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      Контакты
+    </a>
+  </div>
+</nav>
+
+
+<script>
+/* Telegram */
+if (window.Telegram && window.Telegram.WebApp) {
+  const tg = window.Telegram.WebApp;
+  tg.expand(); tg.ready();
+  tg.setHeaderColor('#000000');
+  tg.setBackgroundColor('#000000');
+}
+
+let people = 2;
+let tipPct = 0;
+
+/* Plurals */
+function peopleSub(n) {
+  const mod10 = n % 10, mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 14) return 'человек';
+  if (mod10 === 1) return 'человек';
+  if (mod10 >= 2 && mod10 <= 4) return 'человека';
+  return 'человек';
+}
+
+function changePeople(delta) {
+  people = Math.max(1, Math.min(30, people + delta));
+  document.getElementById('people-num').textContent = people;
+  document.getElementById('people-sub').textContent = peopleSub(people);
+  calc();
+}
+
+function setTip(pct, btn) {
+  tipPct = pct;
+  document.querySelectorAll('.tip-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  calc();
+}
+
+function fmt(n) {
+  return Math.ceil(n).toLocaleString('ru-RU');
+}
+
+function calc() {
+  const base = parseFloat(document.getElementById('inp-total').value) || 0;
+  const tips = base * tipPct / 100;
+  const total = base + tips;
+  const perPerson = people > 0 ? total / people : 0;
+
+  document.getElementById('res-per').textContent    = fmt(perPerson);
+  document.getElementById('res-base').textContent   = base > 0 ? fmt(base) + ' ₽' : '—';
+  document.getElementById('res-tips').textContent   = tips > 0 ? '+' + fmt(tips) + ' ₽' : '—';
+  document.getElementById('res-total').textContent  = total > 0 ? fmt(total) + ' ₽' : '—';
+  document.getElementById('res-people').textContent = people;
+  document.getElementById('btn-pay-amount').textContent = fmt(perPerson) + ' ₽';
+
+  const payBtn = document.getElementById('btn-pay');
+  payBtn.disabled = base <= 0;
+
+  /* person rows */
+  const block = document.getElementById('persons-block');
+  const list  = document.getElementById('persons-list');
+  if (base > 0 && people > 1) {
+    block.style.display = 'block';
+    list.innerHTML = '';
+    for (let i = 1; i <= people; i++) {
+      list.innerHTML += `
+        <div class="person-row">
+          <span class="person-num">Гость ${i}</span>
+          <span class="person-dots"></span>
+          <span class="person-amount">${fmt(perPerson)} ₽</span>
+        </div>`;
+    }
+  } else {
+    block.style.display = 'none';
+  }
+}
+
+let selectedMethod = 'Картой';
+
+function selectMethod(btn, method) {
+  document.querySelectorAll('.pay-method').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedMethod = method;
+}
+
+function callBar() {
+  const btn = document.getElementById('btn-pay');
+  if (btn.disabled) return;
+
+  const base = parseFloat(document.getElementById('inp-total').value) || 0;
+  const tips = base * tipPct / 100;
+  const total = base + tips;
+  const perPerson = people > 0 ? total / people : 0;
+
+  // Обновляем экран успеха
+  document.getElementById('success-method').textContent = selectedMethod;
+
+  // Отправляем данные боту через Telegram WebApp (если запущен в TG)
+  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
+    try {
+      window.Telegram.WebApp.sendData(JSON.stringify({
+        action: 'call_bar',
+        total: Math.ceil(total),
+        per_person: Math.ceil(perPerson),
+        people: people,
+        tip_pct: tipPct,
+        method: selectedMethod
+      }));
+    } catch(e) { /* не в Telegram — игнорируем */ }
+  }
+
+  btn.innerHTML = 'Вызов бармена...';
+  btn.disabled = true;
+  setTimeout(() => {
+    document.getElementById('pay-section').style.display = 'none';
+    document.getElementById('pay-success').style.display = 'block';
+  }, 1200);
+}
+
+/* init */
+calc();
+</script>
+
+</body>
+</html>
